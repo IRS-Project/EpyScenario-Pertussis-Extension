@@ -16,13 +16,18 @@ def render_model_params(model: str, model_param_schemas: dict) -> None:
             current = st.session_state["model_params"][model][k]
 
             if p["type"] == "float":
+                lo, hi = float(p["min"]), float(p["max"])
+                # Clamp defensively: a value applied from calibration (whose priors
+                # may extend past the schema range, e.g. R0) must not overflow the widget.
+                safe_val = min(max(float(current), lo), hi)
                 val = st.number_input(
                     p["label"],
-                    min_value=float(p["min"]),
-                    max_value=float(p["max"]),
-                    value=float(current),
+                    min_value=lo,
+                    max_value=hi,
+                    value=safe_val,
                     step=float(p["step"]),
                     key=widget_key,
+                    help=p.get("help"),
                 )
                 st.session_state["model_params"][model][k] = val
 
@@ -32,14 +37,15 @@ def render_model_params(model: str, model_param_schemas: dict) -> None:
                 # Create columns for each age group
                 cols = st.columns(len(DEFAULT_AGE_GROUPS))
                 val = []
-                
+                lo, hi = float(p["min"]), float(p["max"])
+
                 for i, (col, age_group) in enumerate(zip(cols, DEFAULT_AGE_GROUPS)):
                     with col:
                         age_val = st.number_input(
                             age_group,
-                            min_value=float(p["min"]),
-                            max_value=float(p["max"]),
-                            value=float(current[i]),
+                            min_value=lo,
+                            max_value=hi,
+                            value=min(max(float(current[i]), lo), hi),
                             step=float(p["step"]),
                             key=f"{widget_key}_{i}",
                             label_visibility="visible"
@@ -48,11 +54,24 @@ def render_model_params(model: str, model_param_schemas: dict) -> None:
                         st.session_state["model_params"][model][f"{k}_{i}"] = age_val
 
             elif p["type"] == "discrete":
-                val = st.selectbox(p["label"], options=p["options"], index=p["options"].index(current), key=widget_key)
-                st.session_state["model_params"][model][k] = val
-            
-            else:
-                val = st.text_input(p["label"], value=str(current), key=widget_key)
+                labels = p.get("option_labels")
+                idx = p["options"].index(current) if current in p["options"] else 0
+                val = st.selectbox(
+                    p["label"], options=p["options"], index=idx, key=widget_key,
+                    help=p.get("help"),
+                    format_func=(lambda v: labels.get(v, v)) if labels else (lambda v: v),
+                )
                 st.session_state["model_params"][model][k] = val
 
-            
+            else:
+                val = st.text_input(p["label"], value=str(current), key=widget_key, help=p.get("help"))
+                st.session_state["model_params"][model][k] = val
+
+            # Citations for this parameter — a popover next to the "?" help icon.
+            refs = p.get("references")
+            if refs:
+                with st.popover("📚 Ref", use_container_width=False):
+                    st.caption(f"Citations for **{p['label']}**")
+                    for c in refs:
+                        st.markdown(f"- {c}")
+

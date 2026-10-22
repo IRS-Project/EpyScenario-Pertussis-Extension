@@ -10,7 +10,7 @@ def show_logos():
 
     st.markdown(f"""
             <style>
-            .logo-row {{ display:flex; gap:40px; align-items:center; justify-content:flex-start; margin-top:16px; }}
+            .logo-row {{ display:flex; gap:40px; align-items:center; justify-content:flex-start; margin-top:16px; flex-wrap:wrap; }}
             .logo-row img {{ height:36px; }}
             </style>
             <div class="logo-row">
@@ -19,3 +19,13 @@ def show_logos():
             <a href="https://www.epistorm.org/" target="_blank" rel="noopener"><img src="{epistorm}" alt="Epistorm"></a>
             </div>
             """, unsafe_allow_html=True)
+
+    # ---- Credits (bottom) ----
+    st.caption(
+        "EpyScenario was built as part of the EpiStorm team by ISI Foundation, in support of "
+        "Northeastern University CDC CFA Insight Net funding."
+    )
+    st.caption(
+        "The International Responder Systems (SOAR) team's contribution, part of the CFA Insight "
+        "Net, is the generation of the waning pertussis model."
+    )

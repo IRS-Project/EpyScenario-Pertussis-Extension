@@ -1,0 +1,39 @@
+{
+  "summary": {
+    "R0": {
+      "median": 14.96919623211384,
+      "lo": 12.373024556008641,
+      "hi": 17.91208810205104,
+      "label": "R\u2080"
+    },
+    "rel_infectiousness_partial": {
+      "median": 0.24955414914578797,
+      "lo": 0.08052289403539775,
+      "hi": 0.3934160344092067,
+      "label": "\u03c3 (partial infectiousness)"
+    },
+    "rel_susceptibility_partial": {
+      "median": 0.4990991787631163,
+      "lo": 0.24187690999303998,
+      "hi": 0.5903905095601607,
+      "label": "\u03b4 (partial susceptibility)"
+    },
+    "partial_immune_pct": {
+      "median": 60.501784667756034,
+      "lo": 43.45221263598006,
+      "hi": 89.33940814465775,
+      "label": "S\u209a share of immune pool (%)"
+    }
+  },
+  "params": [
+    "R0",
+    "rel_infectiousness_partial",
+    "rel_susceptibility_partial",
+    "partial_immune_pct"
+  ],
+  "rounds_completed": 3,
+  "final_eps": 0.6404214773013679,
+  "observed": {
+    "overall_partial_share": 0.6602972399150743
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "conservation": {
+    "N": 381181.0,
+    "max_rel_error": 0.0008513016126197266,
+    "mean_rel_error": 0.0002503437863396054
+  },
+  "nonnegativity": {
+    "min_compartment_value": 61.5,
+    "ok": true
+  },
+  "r0_recovery": [
+    {
+      "R0_input": 6.0,
+      "growth_rate_per_day": 0.11458041972821072,
+      "R0_implied": 5.522300872464604,
+      "rel_error": 0.07961652125589931
+    },
+    {
+      "R0_input": 8.0,
+      "growth_rate_per_day": 0.14294792835202527,
+      "R0_implied": 7.189355160166932,
+      "rel_error": 0.10133060497913349
+    },
+    {
+      "R0_input": 12.0,
+      "growth_rate_per_day": 0.19197405061969208,
+      "R0_implied": 10.582672089902443,
+      "rel_error": 0.11811065917479639
+    }
+  ]
+}

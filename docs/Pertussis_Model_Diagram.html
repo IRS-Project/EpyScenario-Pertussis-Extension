@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pertussis Compartmental Model</title>
+<style>
+  @page { size: A4 landscape; margin: 10mm; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: #182028;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  .wrap { padding: 6mm 8mm; }
+  .eyebrow { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10px;
+    letter-spacing: 2px; color: #0e7a78; margin: 0 0 2px; }
+  h1 { font-size: 20px; margin: 0 0 2px; letter-spacing: -.01em; }
+  .sub { color: #4c5a64; font-size: 12px; margin: 0 0 6px; }
+  svg { width: 100%; height: auto; display: block; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 10.5px; }
+  th { background: #eef2f3; color: #4c5a64; text-align: left; padding: 4px 7px;
+    border-bottom: 2px solid #c2cdd1; font-size: 8.5px; letter-spacing: .04em; text-transform: uppercase; }
+  td { padding: 3px 7px; border-bottom: 1px solid #e3e9eb; vertical-align: top; }
+  .sym { font-family: ui-monospace, Menlo, Consolas, monospace; color: #0b5f5d; white-space: nowrap; font-weight: 700; }
+  .def { font-family: ui-monospace, Menlo, Consolas, monospace; font-weight: 700; white-space: nowrap; }
+  .cols { display: flex; gap: 14px; }
+  .cols > div { flex: 1; }
+  .note { font-size: 10px; color: #71828d; margin-top: 6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">EPYSCENARIO · SOAR / IRS</p>
+  <h1>Pertussis transmission model — SEIRS with partial-immunity track</h1>
+  <p class="sub">8 compartments, 7 age bands (0-1, 1-6, 7-10, 11-19, 20-49, 50-64, 65+). Each transition is labelled with its symbol and <b>(default value)</b>. Structure adapted from Wearing &amp; Rohani (2009).</p>
+
+  <svg viewBox="0 0 1200 560" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="s" markerUnits="userSpaceOnUse" markerWidth="13" markerHeight="13" refX="9" refY="4.5" orient="auto"><path d="M0 0 L10 4.5 L0 9 Z" fill="#475569"></path></marker>
+      <marker id="t" markerUnits="userSpaceOnUse" markerWidth="13" markerHeight="13" refX="9" refY="4.5" orient="auto"><path d="M0 0 L10 4.5 L0 9 Z" fill="#0e7a78"></path></marker>
+      <marker id="o" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="8" refY="4" orient="auto"><path d="M0 0 L9 4 L0 8 Z" fill="#c2410c"></path></marker>
+      <marker id="ob" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="8" refY="4" orient="auto"><path d="M0 0 L9 4 L0 8 Z" fill="#185fa5"></path></marker>
+    </defs>
+
+    <!-- waning arcs -->
+    <path d="M1010 112 C 1010 20, 200 20, 200 97" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#s)"></path>
+    <text x="605" y="16" font-size="15" fill="#475569" text-anchor="middle" font-family="ui-monospace,monospace">ω₂ (12 yr): Rₚ → S</text>
+    <path d="M1010 173 C 1010 470, 200 470, 200 353" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#s)"></path>
+    <text x="605" y="486" font-size="15" fill="#475569" text-anchor="middle" font-family="ui-monospace,monospace">ω₁ (4 yr): R → Sₚ</text>
+
+    <!-- Force of infection. ONE dashed line per infection step, both originating
+         from the infectious region (the I / Iₚ pool, marked by the dot). Infection
+         is outflow (S→E, Sₚ→Eₚ), so the lines point ONTO those solid arrows.
+         Engine: S→E rate = β·(I + σ·Iₚ) = λ ;  Sₚ→Eₚ rate = δ·λ (both I and Iₚ
+         enter λ via the formula). RED = λ onto S→E; BLUE = δλ onto Sₚ→Eₚ. -->
+    <!-- Anchored to the infectious boxes: a dashed linker joins the left edges of
+         I and Iₚ (the infectious pool); from it, λ branches onto the S→E step and
+         δλ onto Sₚ→Eₚ. Both I and Iₚ enter λ = β·(I + σ·Iₚ). -->
+    <path d="M670 173 L 670 277" fill="none" stroke="#64748b" stroke-width="1.4" stroke-dasharray="5 4"></path>
+    <path d="M670 206 C 560 196, 430 186, 360 142" fill="none" stroke="#c2410c" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#o)"></path>
+    <path d="M670 244 C 560 254, 430 264, 360 308" fill="none" stroke="#185fa5" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#ob)"></path>
+    <text x="508" y="176" font-size="12" fill="#c2410c" text-anchor="middle" font-family="ui-monospace,monospace" font-weight="700">λ</text>
+    <text x="508" y="282" font-size="12" fill="#185fa5" text-anchor="middle" font-family="ui-monospace,monospace" font-weight="700">δλ</text>
+
+    <!-- naive row (cy=135) -->
+    <line x1="270" y1="135" x2="396" y2="135" stroke="#475569" stroke-width="2" marker-end="url(#s)"></line>
+    <line x1="540" y1="135" x2="666" y2="135" stroke="#475569" stroke-width="2" marker-end="url(#s)"></line>
+    <line x1="810" y1="135" x2="936" y2="135" stroke="#475569" stroke-width="2" marker-end="url(#s)"></line>
+    <text x="333" y="120" font-size="12.5" fill="#c2410c" text-anchor="middle" font-family="ui-monospace,monospace" font-weight="700">λ  (R₀=8, σ=0.5)</text>
+    <text x="603" y="122" font-size="13.5" fill="#0e7a78" text-anchor="middle" font-family="ui-monospace,monospace">γ (9 d)</text>
+    <text x="873" y="122" font-size="13.5" fill="#0e7a78" text-anchor="middle" font-family="ui-monospace,monospace">μ (15 d)</text>
+    <g font-family="Georgia, 'Times New Roman', serif">
+      <rect x="130" y="97" width="140" height="76" rx="7" fill="#fff" stroke="#0e7a78" stroke-width="2"></rect>
+      <text x="200" y="138" font-size="26" fill="#182028" text-anchor="middle">S</text>
+      <text x="200" y="158" font-size="10" fill="#64748b" text-anchor="middle" font-family="sans-serif">susceptible</text>
+      <rect x="400" y="97" width="140" height="76" rx="7" fill="#fff" stroke="#0e7a78" stroke-width="2"></rect>
+      <text x="470" y="138" font-size="26" fill="#182028" text-anchor="middle">E</text>
+      <text x="470" y="158" font-size="10" fill="#64748b" text-anchor="middle" font-family="sans-serif">exposed (latent)</text>
+      <rect x="670" y="97" width="140" height="76" rx="7" fill="#fdf1e7" stroke="#c2410c" stroke-width="2.5"></rect>
+      <text x="740" y="138" font-size="26" fill="#182028" text-anchor="middle">I</text>
+      <text x="740" y="158" font-size="10" fill="#8a4b2a" text-anchor="middle" font-family="sans-serif">infectious</text>
+      <rect x="940" y="97" width="140" height="76" rx="7" fill="#fff" stroke="#0e7a78" stroke-width="2"></rect>
+      <text x="1010" y="138" font-size="26" fill="#182028" text-anchor="middle">R</text>
+      <text x="1010" y="158" font-size="10" fill="#64748b" text-anchor="middle" font-family="sans-serif">recovered</text>
+    </g>
+
+    <!-- partial row (cy=315) -->
+    <line x1="270" y1="315" x2="396" y2="315" stroke="#475569" stroke-width="2" marker-end="url(#s)"></line>
+    <line x1="540" y1="315" x2="666" y2="315" stroke="#475569" stroke-width="2" marker-end="url(#s)"></line>
+    <line x1="810" y1="315" x2="936" y2="315" stroke="#475569" stroke-width="2" marker-end="url(#s)"></line>
+    <text x="333" y="336" font-size="12.5" fill="#185fa5" text-anchor="middle" font-family="ui-monospace,monospace" font-weight="700">δλ  (δ=0.3)</text>
+    <text x="603" y="302" font-size="13.5" fill="#0e7a78" text-anchor="middle" font-family="ui-monospace,monospace">γ (9 d)</text>
+    <text x="873" y="302" font-size="13.5" fill="#0e7a78" text-anchor="middle" font-family="ui-monospace,monospace">μₚ (12 d)</text>
+    <g font-family="Georgia, 'Times New Roman', serif">
+      <rect x="130" y="277" width="140" height="76" rx="7" fill="#eef2f3" stroke="#64748b" stroke-width="2"></rect>
+      <text x="200" y="318" font-size="26" fill="#182028" text-anchor="middle">Sₚ</text>
+      <text x="200" y="338" font-size="10" fill="#64748b" text-anchor="middle" font-family="sans-serif">partial-susceptible</text>
+      <rect x="400" y="277" width="140" height="76" rx="7" fill="#eef2f3" stroke="#64748b" stroke-width="2"></rect>
+      <text x="470" y="318" font-size="26" fill="#182028" text-anchor="middle">Eₚ</text>
+      <text x="470" y="338" font-size="10" fill="#64748b" text-anchor="middle" font-family="sans-serif">partial-exposed</text>
+      <rect x="670" y="277" width="140" height="76" rx="7" fill="#fdf1e7" stroke="#c2410c" stroke-width="2.5"></rect>
+      <text x="740" y="318" font-size="26" fill="#182028" text-anchor="middle">Iₚ</text>
+      <text x="740" y="338" font-size="10" fill="#8a4b2a" text-anchor="middle" font-family="sans-serif">infectious (silent)</text>
+      <rect x="940" y="277" width="140" height="76" rx="7" fill="#eef2f3" stroke="#64748b" stroke-width="2"></rect>
+      <text x="1010" y="318" font-size="26" fill="#182028" text-anchor="middle">Rₚ</text>
+      <text x="1010" y="338" font-size="10" fill="#64748b" text-anchor="middle" font-family="sans-serif">partial-recovered</text>
+    </g>
+
+    <!-- vaccination + omega3 (column 1 vertical) -->
+    <line x1="178" y1="175" x2="178" y2="275" stroke="#0e7a78" stroke-width="2" marker-end="url(#t)"></line>
+    <line x1="222" y1="275" x2="222" y2="175" stroke="#0e7a78" stroke-width="2" marker-end="url(#t)"></line>
+    <text x="150" y="230" font-size="11" fill="#0e7a78" text-anchor="end" font-family="sans-serif">vaccination</text>
+    <text x="250" y="222" font-size="12" fill="#0e7a78" text-anchor="start" font-family="ui-monospace,monospace">ω₃</text>
+    <text x="250" y="238" font-size="10.5" fill="#0e7a78" text-anchor="start" font-family="ui-monospace,monospace">(7 yr)</text>
+
+    <!-- legend for the dashed FOI links (clear right-centre gap) -->
+    <text x="830" y="198" font-size="10" fill="#4c5a64" text-anchor="middle" font-family="sans-serif">dashed = force of infection, from the infectious boxes (I + Iₚ):</text>
+    <text x="830" y="215" font-size="10.5" text-anchor="middle" font-family="ui-monospace,monospace"><tspan fill="#c2410c" font-weight="700">λ drives S→E</tspan><tspan fill="#4c5a64">    ·    </tspan><tspan fill="#185fa5" font-weight="700">δλ drives Sₚ→Eₚ</tspan></text>
+    <text x="830" y="232" font-size="10" fill="#4c5a64" text-anchor="middle" font-family="ui-monospace,monospace">λ = β·(I + σ·Iₚ),  σ = 0.5</text>
+  </svg>
+
+  <div class="cols">
+    <div>
+      <table>
+        <thead><tr><th>Symbol</th><th>Parameter / transition</th><th>Default</th></tr></thead>
+        <tbody>
+          <tr><td class="sym">R₀</td><td>Basic reproduction number (sets β on S→E)</td><td class="def">8</td></tr>
+          <tr><td class="sym">γ</td><td>Incubation rate, E→I &amp; Eₚ→Iₚ (= 1/incubation)</td><td class="def">9 days</td></tr>
+          <tr><td class="sym">μ</td><td>Recovery rate, I→R (= 1/infectious)</td><td class="def">15 days</td></tr>
+          <tr><td class="sym">μₚ</td><td>Recovery rate, Iₚ→Rₚ (partial, milder)</td><td class="def">12 days</td></tr>
+          <tr><td class="sym">σ</td><td>Relative infectiousness of partial cases (Iₚ)</td><td class="def">0.5</td></tr>
+          <tr><td class="sym">δ</td><td>Relative susceptibility of partial pool (Sₚ)</td><td class="def">0.3</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <table>
+        <thead><tr><th>Symbol</th><th>Parameter / transition</th><th>Default</th></tr></thead>
+        <tbody>
+          <tr><td class="sym">ω₁</td><td>Waning, R→Sₚ (recovered → partial)</td><td class="def">4 years</td></tr>
+          <tr><td class="sym">ω₂</td><td>Waning, Rₚ→S (partial → susceptible)</td><td class="def">12 years</td></tr>
+          <tr><td class="sym">ω₃</td><td>Vaccine waning, Sₚ→S</td><td class="def">7 years</td></tr>
+          <tr><td class="sym">—</td><td>Seasonality peak day (day of year)</td><td class="def">240</td></tr>
+          <tr><td class="sym">—</td><td>Seasonality amplitude</td><td class="def">Low</td></tr>
+          <tr><td class="sym">S→Sₚ</td><td>Vaccination (moves susceptibles to partial pool)</td><td class="def">per schedule</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <p class="note"><b>Initial conditions (defaults):</b> infected 0.1% · immune 90% · partial-infection share 33% · partial-immune (Sₚ) share 30%.
+     &nbsp;&nbsp; Force of infection on S is λ = β·(I + σ·Iₚ); on Sₚ it is δ·λ. β is calibrated so the dominant next-generation eigenvalue equals R₀.</p>
+  <p class="note"><b>Conventions:</b> solid arrows = flows of individuals (labelled with their per-capita rate); dashed arrows = the force of infection (an influence that depends on I and Iₚ, not a flow). <b>Closed population</b> — no births or deaths: susceptibility is replenished by waning (ω₁/ω₂/ω₃), not by births, a simplification of the Wearing–Rohani framework (the engine represents compartment-to-compartment transitions only). <b>μ</b> and <b>μₚ</b> denote recovery rates here, not mortality.</p>
+</div>
+</body>
+</html>

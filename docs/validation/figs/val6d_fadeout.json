@@ -1,0 +1,29 @@
+{
+  "population": [
+    2000,
+    5000,
+    10000,
+    20000,
+    50000,
+    100000,
+    300000,
+    1000000
+  ],
+  "fadeout_fraction": [
+    0.467,
+    0.217,
+    0.143,
+    0.062,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "approx_ccs": 50000,
+  "seeds": [
+    1,
+    2,
+    3
+  ],
+  "note": "fade-out = fraction of weeks whose trough reaches zero I+Ip after burn-in; measles CCS ~250-500k, pertussis generally lower (waning-immunity reservoir)"
+}

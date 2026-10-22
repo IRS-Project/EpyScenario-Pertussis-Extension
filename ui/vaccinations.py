@@ -1,8 +1,16 @@
+import copy
 import streamlit as st
 from constants import DEFAULT_AGE_GROUPS
 from state import ensure_vax_state_defaults, ensure_vax_settings_defaults
+from data.campaign_store import default_dtap_campaigns, load_saved_campaigns
 
 ROLLOUT_SHAPES = ["flat", "ramp"]
+
+
+def _cdc_pertussis_campaigns(sim_length: int) -> list[dict]:
+    """CDC DTaP/Tdap schedule as campaigns. Kept as a thin wrapper around the
+    persistent campaign store so there is a single source of truth."""
+    return default_dtap_campaigns(sim_length)
 
 
 def _validate_campaign(start_day: int, end_day: int, ramp_days: int, rollout: str) -> str | None:
@@ -60,6 +68,10 @@ def render_vaccination_campaigns(model: str, age_groups: list[str] | None = None
         compartments = ["S", "E", "I", "R"]
     elif model == "SEIRS (Influenza)":
         compartments = ["S", "E", "I", "R"]
+    elif model == "SEIRS (Pertussis)":
+        # Vaccination moves naive susceptibles into the partial-immunity pool
+        # (S -> Sp), so the eligible pool is the naive susceptibles.
+        compartments = ["S"]
     elif model == "SEIHR (COVID-19)":
         compartments = ["S", "E", "I", "H", "R"]
     else:
@@ -73,31 +85,75 @@ def render_vaccination_campaigns(model: str, age_groups: list[str] | None = None
         "Choose different coverage, effectiveness, rollout shapes and (optionally) which compartments are eligible."
     )
 
+    # ---- Pertussis: load a saved campaign set (managed in the Vaccination Planner)
+    if model == "SEIRS (Pertussis)":
+        with st.container(border=True):
+            st.markdown("**Saved campaign sets**")
+            st.caption(
+                "Load a persistent campaign set into this scenario. The default "
+                "**DTaP/Tdap (CDC)** set is always available; create and save your own "
+                "on the **Vaccination Planner** page (they persist between sessions)."
+            )
+            saved = load_saved_campaigns()
+            names = list(saved.keys())
+            sel = st.selectbox("Campaign set", options=names, key="pert_saved_set")
+            cols = st.columns(2, gap="small")
+            with cols[0]:
+                if st.button("Load into scenario", use_container_width=True):
+                    st.session_state["vaccination_campaigns"] = copy.deepcopy(saved.get(sel, []))
+                    st.success(f"Loaded '{sel}' ({len(saved.get(sel, []))} campaigns). Adjust below as needed.")
+            with cols[1]:
+                if st.button("Replace with (append)", use_container_width=True,
+                             help="Append this set to the current campaigns instead of replacing them."):
+                    st.session_state.setdefault("vaccination_campaigns", [])
+                    st.session_state["vaccination_campaigns"].extend(copy.deepcopy(saved.get(sel, [])))
+                    st.success(f"Appended '{sel}' ({len(saved.get(sel, []))} campaigns).")
+
     # ---- Add new campaign card
     with st.container(border=True):
 
         r1 = st.columns([1.2, 0.9, 0.9], gap="small")
         with r1[0]:
-            st.text_input("Name", key="_vx_new_name")
+            st.text_input("Name", key="_vx_new_name",
+                help="A label for this campaign (e.g. 'DTaP primary series' or 'Adolescent Tdap').")
         with r1[1]:
-            st.number_input("Start day", min_value=0, max_value=10_000, step=1, key="_vx_new_start")
+            st.number_input("Start day", min_value=0, max_value=10_000, step=1, key="_vx_new_start",
+                help=("Simulation day dosing begins (day 0 = the run's start date). How to derive: "
+                      "the campaign's real start date relative to your model start date."))
         with r1[2]:
-            st.number_input("End day", min_value=0, max_value=10_000, step=1, key="_vx_new_end")
+            st.number_input("End day", min_value=0, max_value=10_000, step=1, key="_vx_new_end",
+                help=("Simulation day dosing ends. For an ongoing/routine program, set this to the "
+                      "full run length. Doses are spread across this window."))
 
         r2 = st.columns([1.1, 1.1], gap="small")
         with r2[0]:
-            st.slider("Target coverage (%)", 0, 100, step=1, key="_vx_new_cov_pct")
+            st.slider("Target coverage (%)", 0, 100, step=1, key="_vx_new_cov_pct",
+                help=("Fraction of each selected age band vaccinated over the window (coverage × "
+                      "efficacy = the effective S→Sₚ doses). How to derive: program coverage targets "
+                      "or historical uptake for that age group; for decennial adult boosters over a "
+                      "single season, ≈ 10%/year of run. Tactical: (doses given in the age band ÷ that "
+                      "band's population) × 100, from your IIS."))
         with r2[1]:
-            st.slider("Vaccine efficacy (%)", 0, 100, step=1, key="_vx_new_ve_pct")
+            st.slider("Vaccine efficacy (%)", 0, 100, step=1, key="_vx_new_ve_pct",
+                help=("Vaccine effectiveness against susceptibility — the fraction of doses that "
+                      "actually confer protection. How to derive: vaccine-effectiveness studies "
+                      "(acellular pertussis primary series ≈ 80–85%; adult booster somewhat lower). "
+                      "Tactical: screening-method VE = 1 − [PCV/(1−PCV)]·[(1−PPV)/PPV], where PCV = % of "
+                      "cases vaccinated (line list) and PPV = population coverage (IIS)."))
 
         r3 = st.columns([1.4, 0.8, 0.8], gap="small")
         with r3[0]:
-            st.multiselect("Target age groups", options=age_groups, key="_vx_new_age_groups")
+            st.multiselect("Target age groups", options=age_groups, key="_vx_new_age_groups",
+                help=("Age bands that receive this campaign. Map the schedule to bands — e.g. DTaP "
+                      "primary series → 0-4; adolescent Tdap → 5-19; decennial boosters → adults."))
         with r3[1]:
-            st.selectbox("Rollout", options=ROLLOUT_SHAPES, key="_vx_new_rollout")
+            st.selectbox("Rollout", options=ROLLOUT_SHAPES, key="_vx_new_rollout",
+                help=("Dose timing across the window: 'flat' = even daily rate; 'ramp' = linear "
+                      "ramp-up. Choose to match how quickly the program reached full delivery."))
         with r3[2]:
             # Only meaningful for ramp, but we can keep it visible; validation will handle.
-            st.number_input("Ramp-up days", min_value=1, max_value=10_000, step=1, key="_vx_new_ramp_days")
+            st.number_input("Ramp-up days", min_value=1, max_value=10_000, step=1, key="_vx_new_ramp_days",
+                help="For 'ramp' rollout only: number of days to reach the full daily dosing rate.")
 
         add = st.button("Add campaign", type="primary", use_container_width=True)
 
