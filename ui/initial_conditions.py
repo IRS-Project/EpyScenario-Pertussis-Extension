@@ -2,6 +2,8 @@
 
 import streamlit as st
 from state import ensure_initial_conditions_defaults
+from constants import DEFAULT_AGE_GROUPS
+from data.coverage_store import load_saved_coverage
 
 
 def render_initial_conditions(model: str, ic_defaults: dict) -> None:
@@ -19,6 +21,10 @@ def render_initial_conditions(model: str, ic_defaults: dict) -> None:
                 max_value=100.0,
                 value=float(st.session_state["initial_conditions"]["infected_pct"]),
                 step=0.1,
+                help=("Percent of the population actively infected at the start (seeds E and I). "
+                      "Keep small for an endemic start (≈ 0.01–0.1%). How to derive: current active "
+                      "case count ÷ population at your start date (inflate modestly for under-reporting). "
+                      "Tactical: (active cases in the county ÷ county population) × 100."),
             )
 
         with c2:
@@ -28,6 +34,11 @@ def render_initial_conditions(model: str, ic_defaults: dict) -> None:
                 max_value=100.0,
                 value=float(st.session_state["initial_conditions"]["immune_pct"]),
                 step=0.1,
+                help=("Percent with any prior immunity at the start (fills the recovered / partially-"
+                      "immune pools). In a mature vaccination program this is high. How to derive: "
+                      "vaccination coverage combined with age-specific seroprevalence for your population. "
+                      "Tactical: ≈ up-to-date vaccination coverage % from your IIS (optionally add the "
+                      "% recently infected)."),
             )
 
         if infected_pct + immune_pct > 100.0:
@@ -36,3 +47,67 @@ def render_initial_conditions(model: str, ic_defaults: dict) -> None:
 
         st.session_state["initial_conditions"]["infected_pct"] = float(infected_pct)
         st.session_state["initial_conditions"]["immune_pct"] = float(immune_pct)
+
+        # Pertussis has an 8-compartment structure, so the two coarse sliders
+        # above are further split across the naive and partial-immunity tracks.
+        if model == "SEIRS (Pertussis)":
+            st.caption("Partial-immunity structure (pertussis only).")
+            c3, c4 = st.columns(2, gap="small")
+
+            with c3:
+                partial_infection_pct = st.number_input(
+                    "Infections in partial track (%)",
+                    min_value=0.0,
+                    max_value=100.0,
+                    value=float(st.session_state["initial_conditions"].get("partial_infection_pct", 33.0)),
+                    step=1.0,
+                    help=("Of the seeded infections, the share placed in the partial-immunity track "
+                          "(Eₚ/Iₚ) rather than the naive track (E/I). How to derive: the "
+                          "vaccinated-up-to-date share of your current/observed cases. "
+                          "Tactical: = up-to-date cases ÷ (up-to-date + not-up-to-date cases) × 100, "
+                          "from the vaccination-status column of your case line list."),
+                )
+
+            with c4:
+                partial_immune_pct = st.number_input(
+                    "Sₚ share of immune pool (%)",
+                    min_value=0.0,
+                    max_value=100.0,
+                    value=float(st.session_state["initial_conditions"].get("partial_immune_pct", 71.0)),
+                    step=1.0,
+                    help=("Of the background-immunity pool, the share placed in partially-susceptible "
+                          "Sₚ (the rest split between recovered Rₚ and R). Higher in a mature program "
+                          "where most immunity has waned to 'partial'. How to derive: the fraction of "
+                          "the immune population whose protection is waned/vaccine-derived rather than "
+                          "recently infected. Tactical: ≈ vaccinated (IIS) ÷ (vaccinated + cases in the "
+                          "last ~1 year) × 100 — coverage-dominated in a mature program."),
+                )
+
+            st.session_state["initial_conditions"]["partial_infection_pct"] = float(partial_infection_pct)
+            st.session_state["initial_conditions"]["partial_immune_pct"] = float(partial_immune_pct)
+
+            # Age-stratified starting immunity from a saved coverage profile
+            # (managed on the Vaccination Planner page). When enabled it overrides
+            # the uniform "Background immunity" slider above.
+            profiles = load_saved_coverage()
+            use_age = st.checkbox(
+                "Use a saved coverage profile as starting immunity (age-stratified)",
+                value=bool(st.session_state.get("use_age_immunity", False)),
+                help="Overrides the uniform 'Background immunity' with per-age-band immunity. "
+                     "Create/edit profiles on the Vaccination Planner page.",
+            )
+            if use_age and profiles:
+                names = list(profiles.keys())
+                cur = st.session_state.get("age_immunity_profile")
+                idx = names.index(cur) if cur in names else 0
+                sel = st.selectbox("Coverage profile", options=names, index=idx, key="ic_coverage_profile")
+                prof = profiles[sel]
+                st.session_state["age_immunity_pct"] = {ag: float(prof.get(ag, 0.0)) for ag in DEFAULT_AGE_GROUPS}
+                st.session_state["age_immunity_profile"] = sel
+                st.session_state["use_age_immunity"] = True
+                st.caption(
+                    "Applied — "
+                    + " · ".join(f"{ag} {float(prof.get(ag, 0.0)):.0f}%" for ag in DEFAULT_AGE_GROUPS)
+                )
+            else:
+                st.session_state["use_age_immunity"] = False
