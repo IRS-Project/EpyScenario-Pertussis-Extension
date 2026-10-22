@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>EpyScenario — Alabama Pertussis Thread</title><style>
+:root{--ground:#f5f7f8;--surface:#fff;--surface2:#eef2f3;--ink:#182028;--soft:#4c5a64;
+ --faint:#71828d;--line:#d9e1e4;--lineb:#c2cdd1;--accent:#0e7a78;--accent2:#0b5f5d;--warm:#c2410c;--blue:#185fa5;}
+@media (prefers-color-scheme:dark){:root{--ground:#0e141a;--surface:#151d24;--surface2:#1b252d;--ink:#e7eef2;
+ --soft:#a3b3bd;--faint:#7a8b95;--line:#29343d;--lineb:#384650;--accent:#45c6c3;--accent2:#6fe0dd;--warm:#f08a52;--blue:#5b9bd8;}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+ font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+.wrap{max-width:900px;margin:0 auto;padding:clamp(1.25rem,3vw,2.5rem) clamp(1rem,4vw,2rem)}
+.eyebrow{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.72rem;letter-spacing:.18em;
+ text-transform:uppercase;color:var(--accent);margin:0 0 .4rem}
+h1{font-size:clamp(1.7rem,4vw,2.4rem);line-height:1.2;margin:.2rem 0 1rem;letter-spacing:-.01em}
+h2{font-size:clamp(1.3rem,2.6vw,1.7rem);margin:2.4rem 0 .8rem;padding-bottom:.35rem;border-bottom:2px solid var(--ink)}
+h3{font-size:1.12rem;margin:1.6rem 0 .5rem;color:var(--accent2)}
+p{margin:.7rem 0}a{color:var(--accent)}a:hover{color:var(--accent2)}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;background:var(--surface2);padding:.05em .4em;border-radius:4px;font-size:.9em}
+ol,ul{margin:.6rem 0 1rem;padding-left:1.4rem}li{margin:.35rem 0}
+figure{margin:1.4rem 0;padding:0}
+figure img{width:100%;height:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface);display:block}
+figcaption{font-size:.86rem;color:var(--soft);margin-top:.5rem;line-height:1.5}
+.callout{margin:1.3rem 0;padding:.9rem 1.1rem;border-radius:10px;border:1px solid var(--line);
+ border-left-width:5px;background:var(--surface)}
+.callout .ct{font-weight:700;display:block;margin-bottom:.3rem}
+.callout p{margin:.35rem 0}
+.callout.note{border-left-color:var(--accent)}
+.callout.caution{border-left-color:var(--warm)}
+.callout.tip{border-left-color:var(--blue)}
+table{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.92rem;background:var(--surface);
+ border:1px solid var(--line);border-radius:10px;overflow:hidden}
+th{background:var(--surface2);color:var(--faint);text-align:left;font-size:.72rem;letter-spacing:.04em;
+ text-transform:uppercase;padding:.55rem .8rem;border-bottom:2px solid var(--lineb)}
+td{padding:.55rem .8rem;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:none}
+hr{border:none;border-top:1px solid var(--line);margin:2.2rem 0}
+.lede{color:var(--soft);font-size:1.05rem}
+footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--line);font-size:.82rem;color:var(--faint)}
+</style></head><body><div class="wrap">
+<p class="eyebrow">EpyScenario · SOAR / IRS</p>
+<h1>EpyScenario User Manual — The Alabama Pertussis Thread</h1>
+<p class="lede"><em>An end-to-end worked example using a state with no local age cross-tab. Follow one Alabama scenario through three runs and you will have used EpyScenario&#x27;s <strong>curve-only</strong> calibration path — the workflow for anywhere you have a weekly NNDSS series but no age-by-vaccination breakdown.</em></p>
+<div class="callout note"><span class="ct">Who this is for</span><p>A public-health analyst comfortable with surveillance data but <strong>new to simulation modeling</strong>. Every modeling idea is explained on first use. Because Alabama has <strong>no age cross-tab</strong> available, calibration uses the weekly case curve alone — the <em>curve-only</em> path. See the Glossary if a term is unfamiliar.</p></div>
+<p><strong>The running example:</strong> pertussis (whooping cough) in <strong>Alabama</strong> (statewide, modeled population ≈ 5,108,468), calibrated to Alabama&#x27;s CDC NNDSS weekly case curve. Because no local age line-list is available, calibration uses the weekly curve alone — the curve-only path.</p>
+<h2>What you will build</h2>
+<table><thead><tr><th>Run</th><th>What you do</th><th>What you learn</th></tr></thead><tbody><tr><td><strong>1 · Baseline</strong></td><td>Run with defaults, no tuning</td><td>Setup and a first run; what <em>uncalibrated</em> means</td></tr><tr><td><strong>2 · Calibrated (curve-only)</strong></td><td>Fit to the Alabama NNDSS weekly curve alone with ABC-SMC</td><td>How to anchor R₀ to real timing when you have no age data — and what stays uncertain</td></tr><tr><td><strong>3 · + Vaccination</strong></td><td>Add the CDC DTaP/Tdap schedule</td><td>How an immunization program changes the outlook</td></tr></tbody></table>
+<figure><img src="figs/fig3_three_way.png" alt="The destination: all three runs on one axis. Baseline, calibrated to Alabama&#x27;s weekly curve, and calibrated with the DTaP/Tdap schedule added."><figcaption>The destination: all three runs on one axis. Baseline, calibrated to Alabama&#x27;s weekly curve, and calibrated with the DTaP/Tdap schedule added.</figcaption></figure>
+<hr>
+<h2>0 · Before you begin: orientation</h2>
+<p>EpyScenario is a <strong>compartmental simulator</strong>: it divides the population into groups (susceptible, exposed, infectious, recovered) and moves people between them over time. Pertussis uses two parallel tracks (fully susceptible and partially-immune); the <a href="https://claude.ai/artifact/AERBNM59DqzeK46GHR4XZx">compartmental-model diagram</a> shows the full structure. You do not need the math to use the tool.</p>
+<ol><li>Start the app with <strong>run_dashboard.ps1</strong>; the browser opens the Dashboard at <code>http://localhost:8501</code>.</li><li>Left = <strong>Setup panel</strong> (what you configure); right = <strong>Visualization panel</strong> (results after you run).</li><li>Extra pages — <strong>Vaccination Planner</strong>, <strong>Model References</strong> — are in the left sidebar.</li></ol>
+<figure><img src="figs/ui/ui01_setup_overview.png" alt="The Setup panel with **SEIRS (Pertussis)** and **Alabama** selected."><figcaption>The Setup panel with <strong>SEIRS (Pertussis)</strong> and <strong>Alabama</strong> selected.</figcaption></figure>
+<hr>
+<h2>Run 1 · Alabama Baseline (defaults, uncalibrated)</h2>
+<p><strong>Goal:</strong> a first curve with no tuning, and a clear sense of what it does and does not mean.</p>
+<h3>Steps</h3>
+<ol><li>Set <strong>Model</strong> to <strong>SEIRS (Pertussis)</strong>.</li><li>Set <strong>Geography</strong> to <strong>United_States__Alabama</strong> (type &quot;Alabama&quot; to filter).</li><li>Leave everything else at its default.</li><li>Click <strong>Run</strong>; the right panel fills after a few seconds.</li></ol>
+<figure><img src="figs/fig1_baseline.png" alt="Run 1 — baseline infectious curve for Alabama. Peak ≈ 201,403 people infectious (I + Iₚ) around day 210."><figcaption>Run 1 — baseline infectious curve for Alabama. Peak ≈ 201,403 people infectious (I + Iₚ) around day 210.</figcaption></figure>
+<figure><img src="figs/ui/ui04_run1_result.png" alt="The run in the app. The **Compartment** selector defaults to **I** (naïve infectious only); the figures in this manual sum I + Iₚ, so their totals are higher. Use the selector to view each track."><figcaption>The run in the app. The <strong>Compartment</strong> selector defaults to <strong>I</strong> (naïve infectious only); the figures in this manual sum I + Iₚ, so their totals are higher. Use the selector to view each track.</figcaption></figure>
+<div class="callout caution"><span class="ct">What &quot;uncalibrated&quot; means</span><p>This curve uses generic literature values, not anything specific to Alabama. Treat it as &quot;pertussis in the abstract,&quot; not a forecast — Run 2 anchors it.</p></div>
+<hr>
+<h2>Run 2 · Alabama Calibrated — curve-only (NNDSS weekly, no age data)</h2>
+<p><strong>Goal:</strong> anchor the model to Alabama using the only observed data available — the weekly case curve. This is <strong>curve-only calibration</strong>: ABC-SMC fits the <em>shape and timing</em> of the weekly curve, which is the main lever on R₀.</p>
+<div class="callout note"><span class="ct">One target — and what it can and cannot pin down</span><p>With only a weekly curve (no age cross-tab), ABC-SMC constrains <strong>R₀</strong> well — the growth rate and peak timing determine transmissibility. But σ (partial infectiousness), δ (partial susceptibility) and the Sₚ share are <strong>not</strong> informed by a weekly curve, so their posteriors stay near the prior. That is the honest trade-off of having no age data: you get transmissibility, not the immunity split.</p></div>
+<h3>Steps</h3>
+<ol><li>Expand <strong>Observed data &amp; calibration</strong>. Leave <strong>Observed dataset = None</strong> — Alabama has no age cross-tab, and none is required.</li><li>Under <strong>Reporting area</strong> choose <strong>Alabama</strong> and <strong>MMWR years = 2024</strong>, then click <strong>Fetch weekly pertussis (CDC NNDSS)</strong>.</li><li>Set <strong>Curve basis</strong> to <strong>Cumulative totals</strong> — smoother and more robust for a sparse series (Alabama 2024 has only 37 reported cases).</li><li>Tick <strong>Use weekly curve in ABC-SMC calibration</strong>.</li><li>Under <strong>Calibrate (Bayesian · ABC-SMC)</strong> set <strong>Particles = 40</strong>, <strong>SMC rounds = 3</strong>, then click <strong>Run ABC-SMC calibration</strong>.</li><li>When it finishes, click <strong>Run</strong> on the Dashboard to simulate with the calibrated R₀.</li></ol>
+<div class="callout tip"><span class="ct">This is the curve-only path the app now supports</span><p>You did not select any observed dataset — the weekly curve and ABC-SMC controls appear on their own, and calibration runs against the weekly curve alone. That is exactly how you calibrate any state that has an NNDSS series but no age line-list.</p></div>
+<figure><img src="figs/ui/ui06_weekly_and_abc.png" alt="Curve-only setup: no dataset selected, the Alabama NNDSS weekly curve fetched, cumulative basis, and the ABC-SMC controls — all reachable without an age cross-tab."><figcaption>Curve-only setup: no dataset selected, the Alabama NNDSS weekly curve fetched, cumulative basis, and the ABC-SMC controls — all reachable without an age cross-tab.</figcaption></figure>
+<h3>The two curves</h3>
+<figure><img src="figs/fig2_baseline_vs_calibrated.png" alt="Run 2 — baseline (dashed) vs the curve-only calibrated model (solid teal). Calibrating to Alabama&#x27;s weekly curve moves the peak to about 169,563 around day 239 (a 16% decrease versus uncalibrated)."><figcaption>Run 2 — baseline (dashed) vs the curve-only calibrated model (solid teal). Calibrating to Alabama&#x27;s weekly curve moves the peak to about 169,563 around day 239 (a 16% decrease versus uncalibrated).</figcaption></figure>
+<h3>Reading the posterior</h3>
+<p>ABC-SMC reports a <strong>median</strong> and <strong>95% credible interval (CrI)</strong> per parameter. Watch how much narrower than the grey prior bar each interval is — that is how much the Alabama data constrained it.</p>
+<figure><img src="figs/fig4_posterior.png" alt="Run 2 — the curve-only posterior. R₀&#x27;s interval is the one the weekly curve pins down; σ, δ and the Sₚ share remain close to their full prior width because no age data informs them."><figcaption>Run 2 — the curve-only posterior. R₀&#x27;s interval is the one the weekly curve pins down; σ, δ and the Sₚ share remain close to their full prior width because no age data informs them.</figcaption></figure>
+<table><thead><tr><th>Parameter</th><th>Calibrated median</th><th>95% credible interval</th><th>Constrained by weekly curve?</th></tr></thead><tbody><tr><td>R₀</td><td>7.2</td><td>6 – 9.2</td><td>Yes — main lever</td></tr><tr><td>σ (partial infectiousness)</td><td>0.16</td><td>0.055 – 0.34</td><td>No — near prior</td></tr><tr><td>δ (partial susceptibility)</td><td>0.36</td><td>0.11 – 0.58</td><td>No — near prior</td></tr><tr><td>Sₚ share of immune pool (%)</td><td>63%</td><td>44% – 83%</td><td>No — near prior</td></tr></tbody></table>
+<div class="callout caution"><span class="ct">Sparse counts + under-reporting</span><p>Alabama reported only ~37 pertussis cases in 2024, and pertussis is heavily under-reported everywhere. Calibration fits the curve&#x27;s <em>shape</em>, not its absolute height, and a sparse curve constrains R₀ more loosely than a high-incidence state would. Read the R₀ interval accordingly.</p></div>
+<hr>
+<h2>Run 3 · Calibrated + DTaP/Tdap Vaccination</h2>
+<p><strong>Goal:</strong> keep the curve-only calibrated model and add a realistic immunization program.</p>
+<div class="callout note"><span class="ct">How pertussis vaccination is modeled</span><p>DTaP/Tdap is not sterilizing and its protection wanes, so vaccinating someone moves them from <em>fully susceptible</em> (S) into the <em>partially-immune</em> track (Sₚ) — less likely to be infected, less infectious if they are — rather than removing them entirely.</p></div>
+<h3>Steps</h3>
+<ol><li>Open <strong>Vaccination Planner</strong> from the sidebar.</li><li>In <strong>section 1</strong>, the grid is pre-filled with the CDC DTaP/Tdap schedule (children ≈ 92%, adolescents ≈ 90%, adults ≈ 7%). Accept it for this example.</li><li>Click <strong>Add these campaigns to the scenario</strong>.</li><li>Return to the <strong>Dashboard</strong> — the Run 2 calibration is still active — and click <strong>Run</strong>.</li></ol>
+<figure><img src="figs/ui/ui08_vax_planner.png" alt="The Vaccination Planner, pre-filled with the CDC DTaP/Tdap schedule."><figcaption>The Vaccination Planner, pre-filled with the CDC DTaP/Tdap schedule.</figcaption></figure>
+<h3>The three-way comparison</h3>
+<figure><img src="figs/fig3_three_way.png" alt="Run 3 — baseline, curve-only calibrated, and calibrated-plus-vaccination. Adding the DTaP/Tdap schedule lowers the calibrated peak from about 169,563 to 39,052 (~77%); the shaded band is infections averted over the 400-day horizon."><figcaption>Run 3 — baseline, curve-only calibrated, and calibrated-plus-vaccination. Adding the DTaP/Tdap schedule lowers the calibrated peak from about 169,563 to 39,052 (~77%); the shaded band is infections averted over the 400-day horizon.</figcaption></figure>
+<hr>
+<h2>Interpreting results responsibly</h2>
+<ul><li><strong>Curve-only means R₀-only:</strong> trust the calibrated transmissibility/timing; treat σ, δ and the Sₚ share as unchanged priors, not findings.</li><li><strong>Under-reporting + sparse counts:</strong> compare shapes and relative changes, never absolute case numbers — especially for a low-count state like Alabama.</li><li><strong>Uncalibrated ≠ forecast:</strong> a defaults run shows generic behavior, not an Alabama prediction.</li><li><strong>Single-season horizon:</strong> this example runs 400 days; the model has no births or aging between age bands, so keep horizons to an outbreak/season scale.</li></ul>
+<h2>Glossary</h2>
+<table><thead><tr><th>Term</th><th>Plain-English meaning</th></tr></thead><tbody><tr><td>Compartment</td><td>A group the population is divided into (e.g. Infectious); people move between them over time.</td></tr><tr><td>SEIRS</td><td>Susceptible → Exposed → Infectious → Recovered → back to Susceptible as immunity wanes.</td></tr><tr><td>Curve-only calibration</td><td>Fitting the model to a weekly case curve alone (no age breakdown). Constrains R₀ but not the immunity parameters.</td></tr><tr><td>R₀</td><td>Basic reproduction number — average people one case infects in a fully susceptible population; the main driver of outbreak speed.</td></tr><tr><td>ABC-SMC</td><td>The Bayesian calibration method used here; returns a range (posterior) per parameter, not a single value.</td></tr><tr><td>Posterior / 95% CrI</td><td>The parameter values consistent with the data; the 95% credible interval is where the truth most plausibly lies.</td></tr><tr><td>NNDSS</td><td>CDC&#x27;s National Notifiable Diseases Surveillance System — the weekly case source.</td></tr></tbody></table>
+<h2>Troubleshooting</h2>
+<table><thead><tr><th>Symptom</th><th>Fix</th></tr></thead><tbody><tr><td>ABC-SMC button warns it needs a weekly curve</td><td>In curve-only mode you must fetch a weekly series and tick “Use weekly curve in ABC-SMC calibration” first (there is no age dataset to fall back on).</td></tr><tr><td>“Fetch weekly” returns nothing</td><td>The app falls back to a local cache; if a year is empty, pick another MMWR year.</td></tr><tr><td>R₀ interval is very wide</td><td>Expected for a sparse, low-count state; try the cumulative basis, a longer horizon, or additional MMWR years for a fuller curve.</td></tr><tr><td>Empty result chart</td><td>Click <strong>Run</strong> on the Dashboard after calibrating or editing the vaccination plan.</td></tr></tbody></table>
+<h2>Appendix · where things live</h2>
+<ul><li><strong>Parameter sources:</strong> <a href="../parameter-references.md">docs/parameter-references.md</a> and the in-app Model References page.</li><li><strong>Model structure:</strong> the <a href="https://claude.ai/artifact/AERBNM59DqzeK46GHR4XZx">compartmental-model diagram</a>.</li><li><strong>Reproduce the figures:</strong> generated headlessly with the same engine (geography United States  Alabama, 52-week Alabama NNDSS curve, curve-only ABC-SMC).</li></ul>
+<footer>EpyScenario · SOAR / IRS — generated 2026-09-18. A worked example; not a forecast.</footer>
+</div></body></html>

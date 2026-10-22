@@ -1,0 +1,56 @@
+{
+  "Oregon": {
+    "fit_year": 2023,
+    "test_year": 2024,
+    "R0_fit_on_2023": 18.0,
+    "R0_insample_2024": 6.0,
+    "holdout_distance": 0.8159487044210296,
+    "insample_floor": 0.4237136512247267,
+    "persistence_baseline": 0.7559779924998697,
+    "holdout_detail": {
+      "rmse": 0.4505640890364142,
+      "peak_week_offset": 38
+    },
+    "persistence_detail": {
+      "rmse": 0.3809779924998697,
+      "peak_week_offset": 39
+    },
+    "beats_persistence": false
+  },
+  "Alabama": {
+    "fit_year": 2023,
+    "test_year": 2024,
+    "R0_fit_on_2023": 18.0,
+    "R0_insample_2024": 6.0,
+    "holdout_distance": 0.7711770219494795,
+    "insample_floor": 0.52772251296788,
+    "persistence_baseline": 0.7150952892874937,
+    "holdout_detail": {
+      "rmse": 0.4250231757956333,
+      "peak_week_offset": 36
+    },
+    "persistence_detail": {
+      "rmse": 0.3689414431336475,
+      "peak_week_offset": 36
+    },
+    "beats_persistence": false
+  },
+  "Oregon (2024->2025)": {
+    "fit_year": 2024,
+    "test_year": 2025,
+    "R0_fit_on_2024": 6.0,
+    "R0_insample_2025": 13.5,
+    "holdout_distance": 0.9256723662935337,
+    "insample_floor": 0.47268371116130603,
+    "persistence_baseline": 0.898039058102347,
+    "holdout_detail": {
+      "rmse": 0.5483138757274959,
+      "peak_week_offset": 40
+    },
+    "persistence_detail": {
+      "rmse": 0.43650059656388546,
+      "peak_week_offset": 48
+    },
+    "beats_persistence": false
+  }
+}
